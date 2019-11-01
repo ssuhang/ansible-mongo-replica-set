@@ -1,0 +1,10 @@
+---
+- name: copy initRS script
+  template: src=initRS.j2 dest=/tmp/initRS.js
+  become: true
+  become_user: root
+
+- name: initiate replica set from first primary
+  shell: mongo < /tmp/initRS.js
+  become: true
+  become_user: root

@@ -1,0 +1,53 @@
+---
+- name: check if mongo already installed
+  stat: path=/usr/bin/mongo
+  register: mongo_bin
+
+- name: MongoDB | Fetch 10Gen signing key
+  command: sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5 
+  when: mongo_bin.stat.exists == False
+
+- name: MongoDB | Add 10Gen repository
+  shell:
+    echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+    creates=/etc/apt/sources.list.d/mongodb-org-3.6.list
+  when: mongo_bin.stat.exists == False
+
+- name: MongoDB | Copy WIREDTIGER CONF
+  template: src=mongod.wiredtiger.j2 dest=/etc/mongod.conf mode=0644
+  become: true
+  become_user: root
+  when: storage == 'wiredtiger'
+
+- name: MongoDB | Copy WIREDTIGER Maintenance CONF
+  template: src=mongod.conf.maintenance.wiredtiger.j2 dest=/etc/mongod.conf.maintenance mode=0644
+  become: true
+  become_user: root
+  when: storage == 'wiredtiger'
+  
+
+- name: install mongodb
+  apt: name={{ item }} state=latest update_cache=yes allow_unauthenticated=yes
+  with_items:
+    - mongodb-org-server
+    - mongodb-org-mongos
+    - mongodb-org-shell
+    - mongodb-org-tools
+  become: true
+  become_user: root
+  when: mongo_bin.stat.exists == False
+
+- name: MongoDB | Create Directory
+  file:
+    path: "{{ hostvars[inventory_hostname]['db_directory'] }}"
+    state: directory
+    owner: mongodb
+    group: mongodb
+    mode: 0755
+  become: true
+  become_user: root
+
+- name: MongoDB - stop server
+  shell: sudo systemctl stop mongod
+  when: mongo_bin.stat.exists == False
+  ignore_errors: true

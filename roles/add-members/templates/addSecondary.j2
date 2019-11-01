@@ -1,0 +1,5 @@
+use admin
+db.auth("{{ hostvars[inventory_hostname]['db_cluster_admin_username']  }}", "{{ hostvars[inventory_hostname]['db_cluster_admin_password']  }}");
+{% for host in groups['secondary_private'] %}
+    rs.add("{{host}}:27017");
+{% endfor %}

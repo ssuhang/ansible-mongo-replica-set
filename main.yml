@@ -1,0 +1,77 @@
+---
+# This playbook deploy a secure mongodb replica set on Ubuntu hosts
+
+# Install mongodb on each nodes
+- hosts: all
+  remote_user: ubuntu
+  become: true
+  become_user: ubuntu
+  vars_files:
+    - vars/common.yml
+  roles:
+  - role: install-mongod-wt-rs
+
+# Restart Primary taking into account the new configuration (/etc/mongod.conf)
+- hosts: primary
+  remote_user: ubuntu
+  become: true
+  become_user: ubuntu
+  vars_files:
+    - vars/common.yml
+  roles:
+  - role: restart_mongod
+  - role: wait_connection
+
+# Initiate the replicaset and create the admin users
+- hosts: primary
+  remote_user: ubuntu
+  become: true
+  become_user: ubuntu
+  vars_files:
+    - vars/common.yml
+  roles:
+  - role: initiate-replica-set
+  - role: wait_master
+
+# Restart Primary taking into account the new configuration (auth / keyFile option defined in /etc/mongod.conf)
+- hosts: primary
+  remote_user: ubuntu
+  become: true
+  become_user: ubuntu
+  vars_files:
+    - vars/common.yml
+  roles:
+  - role: restart_mongod
+  - role: wait_master
+
+# Restart Secondaries taking into account the new configuration (auth / keyFile option defined in /etc/mongod.conf)
+- hosts: secondary
+  remote_user: ubuntu
+  become: true
+  become_user: ubuntu
+  vars_files:
+    - vars/common.yml
+  roles:
+  - role: restart_mongod
+  - role: wait_connection
+
+# Restart Arbiter taking into account the new configuration (auth / keyFile option defined in /etc/mongod.conf)
+#- hosts: arbiter
+#  remote_user: ubuntu
+#  become: true
+#  become_user: ubuntu
+#  vars_files:
+#    - vars/common.yml
+#  roles:
+#  - role: restart_mongod
+#  - role: wait_connection
+
+# Add members to the replicaset and create user for the database
+- hosts: primary
+  remote_user: ubuntu
+  become: true
+  become_user: ubuntu
+  vars_files:
+    - vars/common.yml
+  roles:
+  - role: add-members

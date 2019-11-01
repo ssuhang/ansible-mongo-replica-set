@@ -1,0 +1,10 @@
+---
+# This playbook remove mongodb installation from all nodes
+
+# Remove mongodb from each nodes
+- hosts: all
+  remote_user: ubuntu
+  become: true
+  become_user: ubuntu
+  roles:
+  - role: remove-mongod
