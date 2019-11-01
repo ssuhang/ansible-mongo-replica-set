@@ -37,8 +37,8 @@ db_name=DB_NAME
 Nodes initialisation
 --------------------
 
-```ansible-playbook -i inventory/environment.ini main.yml --key-file=no8.pem --extra-vars '{"replSet":"replicasetname", "storage":"wiredtiger"}'```
+```ansible-playbook -i inventory/environment.ini main.yml --key-file=tony.pem --extra-vars '{"replSet":"replicasetname", "storage":"wiredtiger"}'```
 
 If you want to cleanup everything
 
-```ansible-playbook -i inventory/environment.ini clean.yml --key-file=no8.pem```
+```ansible-playbook -i inventory/environment.ini clean.yml --key-file=tony.pem```
